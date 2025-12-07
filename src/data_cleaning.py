@@ -76,9 +76,6 @@ def remove_invalid_rows(df):
         df["quantity"] = pd.to_numeric(df["quantity"], errors='coerce')
         # Keep only rows with positive price and quantity
         df = df[(df["price"] > 0) & (df["quantity"] > 0)]
-        # What: Remove exact duplicate rows
-        # Why: Duplicate entries can skew analysis
-        df = df.drop_duplicates()
     return df
 
 if __name__ == "__main__":
@@ -100,8 +97,11 @@ if __name__ == "__main__":
     df = handle_missing_values(df)
     df = remove_invalid_rows(df)
 
-    # Remove exact duplicates
-    df = df.drop_duplicates()
+    # What: Normalize for deduplication
+    # Why: Remove duplicates even if case or extra spaces differ
+    df["product"] = df["product"].str.lower().str.strip()
+    df["category"] = df["category"].str.lower().str.strip()
+    df = df.drop_duplicates(subset=["product", "category", "price", "quantity", "date_sold"])
 
     # What: Save cleaned dataset to processed/ folder.
     # Why: Makes sure project has a reproducible output file.
