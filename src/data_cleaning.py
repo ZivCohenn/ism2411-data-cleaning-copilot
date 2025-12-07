@@ -27,7 +27,6 @@ def load_data(file_path: str):
     last_exc = None
     for opts in read_attempts:
         try:
-            # Copilot suggested this, I modified variable names and logic
             data = pd.read_csv(file_path, **opts)
             return data
         except Exception as e:
@@ -68,14 +67,15 @@ def handle_missing_values(df):
     existing_cols = [col for col in required_cols if col in df.columns]
     return df.dropna(subset=existing_cols)
 
-# What: Remove rows with negative price or quantity.
+# What: Remove rows with zero or negative price or quantity.
 # Why: These are data entry errors.
 def remove_invalid_rows(df):
     if "price" in df.columns and "quantity" in df.columns:
-        # Convert to numeric safely
+        # Convert to numeric
         df["price"] = pd.to_numeric(df["price"], errors='coerce')
         df["quantity"] = pd.to_numeric(df["quantity"], errors='coerce')
-        df = df[(df["price"] >= 0) & (df["quantity"] >= 0)]
+        # Keep only rows with positive price and quantity
+        df = df[(df["price"] > 0) & (df["quantity"] > 0)]
     return df
 
 if __name__ == "__main__":
@@ -89,13 +89,16 @@ if __name__ == "__main__":
     # Fix column names to match cleaning functions
     df = df.rename(columns={"prodname": "product", "qty": "quantity"})
 
-    # Remove quotes from categories
+    # Remove quotes and lowercase categories
     if "category" in df.columns:
-        df["category"] = df["category"].str.replace('"', '').str.strip()
+        df["category"] = df["category"].str.replace('"', '').str.strip().str.lower()
 
     df = strip_whitespace(df, ["product", "category"])
     df = handle_missing_values(df)
     df = remove_invalid_rows(df)
+
+    # Remove exact duplicates
+    df = df.drop_duplicates()
 
     # What: Save cleaned dataset to processed/ folder.
     # Why: Makes sure project has a reproducible output file.
