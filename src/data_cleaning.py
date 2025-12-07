@@ -97,11 +97,11 @@ if __name__ == "__main__":
     df = handle_missing_values(df)
     df = remove_invalid_rows(df)
 
-    # What: Normalize for deduplication
-    # Why: Remove duplicates even if case or extra spaces differ
+    # What: Normalize text columns for deduplication
+    # Why: Remove duplicates even if case, whitespace, or category variations exist
     df["product"] = df["product"].str.lower().str.strip()
     df["category"] = df["category"].str.lower().str.strip()
-    df = df.drop_duplicates(subset=["product", "category", "price", "quantity", "date_sold"])
+    df = df.drop_duplicates(subset=["product", "category", "price", "quantity", "date_sold"], keep="first")
 
     # What: Save cleaned dataset to processed/ folder.
     # Why: Makes sure project has a reproducible output file.
