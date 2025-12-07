@@ -76,6 +76,9 @@ def remove_invalid_rows(df):
         df["quantity"] = pd.to_numeric(df["quantity"], errors='coerce')
         # Keep only rows with positive price and quantity
         df = df[(df["price"] > 0) & (df["quantity"] > 0)]
+        # What: Remove exact duplicate rows
+        # Why: Duplicate entries can skew analysis
+        df = df.drop_duplicates()
     return df
 
 if __name__ == "__main__":
